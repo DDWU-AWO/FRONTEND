@@ -1,11 +1,13 @@
-import './App.css';
+import { Route, Routes } from 'react-router-dom';
+import HomePage from './pages/HomePage';
+import ComponentsPage from './pages/ComponentsPage';
 
 function App() {
   return (
-    <main className="app">
-      <h1>AI Workflow Optimizer</h1>
-      <p>여러 AI의 작업을 하나의 흐름으로 연결하고, 토큰 사용량과 실행 비용을 최적화합니다.</p>
-    </main>
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/components" element={<ComponentsPage />} />
+    </Routes>
   );
 }
 
