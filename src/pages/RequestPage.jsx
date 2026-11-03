@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import styled, { css, keyframes } from 'styled-components';
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import styled, { keyframes } from 'styled-components';
 import { createPlan } from '../api/plan';
-import { Button, SavingsCard } from '../components';
+import { RequestForm, SavingsCard } from '../components';
 import { ReactComponent as Spinner } from '../assets/loading-spinner.svg';
 
 const SKELETON_COUNT = 3;
@@ -11,72 +11,6 @@ const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
   gap: 40px;
-`;
-
-const RequestSection = styled.section`
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-`;
-
-const Title = styled.h1`
-  margin: 0;
-  font-size: 32px;
-  font-weight: 700;
-  line-height: 1.2;
-  color: ${({ theme }) => theme.colors.text};
-`;
-
-const Description = styled.p`
-  font-size: 16px;
-  line-height: 1.2;
-  color: ${({ theme }) => theme.colors.textMuted};
-`;
-
-const InputBox = styled.form`
-  display: flex;
-  align-items: flex-end;
-  gap: 8px;
-  padding: 7px; /* Figma 테두리(안쪽 1px) 포함 8px */
-  border-radius: ${({ theme }) => theme.radius.lg};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  background: ${({ theme }) => theme.colors.surface};
-
-  &:focus-within {
-    border-color: ${({ theme }) => theme.colors.primary};
-  }
-
-  ${({ $locked, theme }) =>
-    $locked &&
-    css`
-      background: ${theme.colors.surfaceMuted};
-
-      &:focus-within {
-        border-color: ${theme.colors.border};
-      }
-    `}
-`;
-
-const TextArea = styled.textarea`
-  flex: 1;
-  min-width: 0;
-  padding: 12px 14px;
-  border: none;
-  outline: none;
-  resize: none;
-  background: transparent;
-  font-family: inherit;
-  font-size: 17px;
-  line-height: 1.6;
-  color: ${({ theme }) => theme.colors.text};
-  field-sizing: content;
-  min-height: calc(17px * 1.6 + 24px);
-  max-height: 240px;
-
-  &::placeholder,
-  &:disabled {
-    color: ${({ theme }) => theme.colors.textMuted};
-  }
 `;
 
 const PrepCard = styled.section`
@@ -163,53 +97,37 @@ const Hint = styled.p`
  * 요청을 입력하고 시작하면, 단계가 나뉘는 동안 '단계 준비 중' 상태를 보여줍니다.
  */
 function RequestPage() {
-  const [request, setRequest] = useState('');
-  const [isPreparing, setIsPreparing] = useState(false);
+  const { state } = useLocation();
   const navigate = useNavigate();
+  // 다른 화면에서 넘어온 요청 문구가 있으면 채워 둡니다. (예: '요청 바꿔서 다시 하기')
+  const [request, setRequest] = useState(state?.request ?? '');
+  const [isPreparing, setIsPreparing] = useState(false);
 
-  const canSubmit = request.trim().length > 0 && !isPreparing;
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!canSubmit) return;
+  const submit = async (text) => {
     setIsPreparing(true);
     try {
-      const plan = await createPlan(request.trim());
+      const plan = await createPlan(text);
       navigate('/new/agents', { state: { plan } });
     } catch {
       setIsPreparing(false);
     }
   };
 
-  const handleKeyDown = (e) => {
-    // Enter: 제출, Shift+Enter: 줄바꿈 (한글 조합 중인 Enter는 무시)
-    if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
-      handleSubmit(e);
-    }
-  };
+  // 작업 진행 화면에서 '시작하기'로 넘어온 경우 바로 시작합니다.
+  useEffect(() => {
+    if (state?.autoStart && state.request) submit(state.request);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <Wrapper>
-      <RequestSection>
-        <Title>어떤 일을 맡길까요?</Title>
-        <Description>
-          하고 싶은 일을 편하게 적으면, 여러 AI가 나눠서 차례대로 처리해요.
-        </Description>
-        <InputBox onSubmit={handleSubmit} $locked={isPreparing}>
-          <TextArea
-            value={request}
-            onChange={(e) => setRequest(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="예: 최신 소형 AI 모델 동향을 조사해서 개발자용 블로그 글을 써 주고, 마지막에 맞춤법 검사까지 해 줘."
-            aria-label="요청 내용"
-            rows={1}
-            disabled={isPreparing}
-          />
-          <Button type="submit" disabled={!canSubmit}>
-            시작하기
-          </Button>
-        </InputBox>
-      </RequestSection>
+      <RequestForm
+        value={request}
+        onChange={setRequest}
+        onSubmit={submit}
+        locked={isPreparing}
+        showExamples
+      />
 
       {isPreparing && (
         <>

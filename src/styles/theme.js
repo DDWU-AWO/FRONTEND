@@ -19,6 +19,7 @@ const theme = {
     successBg: '#e7f4ec',
     danger: '#b7303b',
     dangerBg: '#fef1f2',
+    dangerSoft: '#fff6f5',
   },
   fonts: {
     base: "'Noto Sans KR', system-ui, -apple-system, 'Segoe UI', sans-serif",

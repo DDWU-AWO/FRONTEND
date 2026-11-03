@@ -108,7 +108,7 @@ function SavingsCard({
     <CardWrapper {...rest}>
       <Heading>{heading}</Heading>
       <Value>
-        <Percent>{percent}%</Percent>
+        <Percent>{percent == null ? '—' : `${percent}%`}</Percent>
         <Muted as="span" $size={15} $lineHeight={1.2}>
           {unitLabel}
         </Muted>

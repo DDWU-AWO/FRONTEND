@@ -30,11 +30,12 @@ const Label = styled.span`
 /**
  * Figma: StatusBadge
  * status: done / running / waiting / paused / skipped
+ * label: 기본 문구 대신 보여줄 문구 (예: '멈췄어요')
  */
-function StatusBadge({ status = 'done', ...rest }) {
+function StatusBadge({ status = 'done', label, ...rest }) {
   return (
     <Label $status={status} {...rest}>
-      {STEP_STATUS[status]}
+      {label ?? STEP_STATUS[status]}
     </Label>
   );
 }

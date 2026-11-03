@@ -6,6 +6,7 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const MEETING_PLAN = [
   {
     id: 1,
+    name: '회의 요약',
     agent: '요약 담당 AI',
     tagline: '회의의 핵심을 한눈에',
     description: '회의록에서 주요 논의와 결정된 내용을 골라 짧게 요약해요.',
@@ -14,6 +15,7 @@ const MEETING_PLAN = [
   },
   {
     id: 2,
+    name: '할 일 정리',
     agent: '정리 담당 AI',
     tagline: '할 일을 빠짐없이',
     description: '요약한 내용을 바탕으로 할 일, 담당자, 마감일을 보기 쉽게 정리해요.',
@@ -22,9 +24,49 @@ const MEETING_PLAN = [
   },
 ];
 
+const BLOG_PLAN = [
+  {
+    id: 1,
+    name: '자료 조사',
+    agent: '조사 담당 AI',
+    tagline: '최신 자료 모으기',
+    description: '최신 소형 AI 모델 3종의 특징과 성능 자료를 출처와 함께 모아요.',
+    volume: '모델 3종 · 핵심 자료 목록',
+    resultType: 'document',
+  },
+  {
+    id: 2,
+    name: '목차 정하기',
+    agent: '기획 담당 AI',
+    tagline: '글의 뼈대 세우기',
+    description: '조사한 자료를 바탕으로 개발자가 읽기 좋은 글의 목차를 정해요.',
+    volume: '소제목 4개',
+    resultType: 'outline',
+  },
+  {
+    id: 3,
+    name: '글 쓰기',
+    agent: '작성 담당 AI',
+    tagline: '읽기 쉬운 블로그 글로',
+    description: '목차에 맞춰 실무 개발자를 위한 블로그 글을 써요.',
+    volume: '2,000자 내외',
+    resultType: 'document',
+  },
+  {
+    id: 4,
+    name: '맞춤법 검사',
+    agent: '검수 담당 AI',
+    tagline: '마지막으로 한 번 더 확인',
+    description: '글의 맞춤법과 어색한 문장을 고쳐요.',
+    volume: '고친 문장 목록',
+    resultType: 'review',
+  },
+];
+
 const RESEARCH_PLAN = [
   {
     id: 1,
+    name: '자료 조사',
     agent: '조사 담당 AI',
     tagline: '비교할 자료 모으기',
     description: '경쟁 서비스 3개의 주요 기능, 가격, 이용 대상을 찾아 출처와 함께 모아요.',
@@ -33,6 +75,7 @@ const RESEARCH_PLAN = [
   },
   {
     id: 2,
+    name: '비교 분석',
     agent: '비교 분석 담당 AI',
     tagline: '서비스별 차이 살펴보기',
     description: '조사한 자료를 같은 기준으로 비교하고, 서비스마다 강점과 아쉬운 점을 짚어요.',
@@ -41,6 +84,7 @@ const RESEARCH_PLAN = [
   },
   {
     id: 3,
+    name: '보고서 작성',
     agent: '보고서 작성 담당 AI',
     tagline: '읽기 쉬운 보고서로',
     description: '비교 내용을 바탕으로 주요 발견과 참고할 점을 보고서로 정리해요.',
@@ -49,6 +93,7 @@ const RESEARCH_PLAN = [
   },
   {
     id: 4,
+    name: '발표 대본',
     agent: '발표 대본 작성 담당 AI',
     tagline: '말하기 편한 대본으로',
     description: '보고서의 핵심을 자연스럽게 설명할 수 있는 발표 대본을 만들어요.',
@@ -58,6 +103,7 @@ const RESEARCH_PLAN = [
   },
   {
     id: 5,
+    name: '검수',
     agent: '검수 담당 AI',
     tagline: '마지막으로 한 번 더 확인',
     description: '보고서와 대본의 빠진 내용, 어색한 문장과 맞춤법을 확인해요.',
@@ -66,10 +112,16 @@ const RESEARCH_PLAN = [
   },
 ];
 
+function pickPlan(request) {
+  if (request.includes('회의')) return MEETING_PLAN;
+  if (request.includes('블로그')) return BLOG_PLAN;
+  return RESEARCH_PLAN;
+}
+
 /** 요청을 단계(담당 AI)로 나눈 계획표를 받아옵니다. */
 export async function createPlan(request) {
   await delay(1500);
-  const steps = request.includes('회의') ? MEETING_PLAN : RESEARCH_PLAN;
+  const steps = pickPlan(request);
   return { request, steps, finalStepId: steps[steps.length - 1].id };
 }
 

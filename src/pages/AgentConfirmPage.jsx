@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { AgentCard, AGENT_CHOICE, Button } from '../components';
 
@@ -124,6 +124,7 @@ const StartButton = styled(Button)`
  */
 function AgentConfirmPage() {
   const { state } = useLocation();
+  const navigate = useNavigate();
   const plan = state?.plan;
 
   const [steps, setSteps] = useState(plan?.steps ?? []);
@@ -169,7 +170,9 @@ function AgentConfirmPage() {
   };
 
   const handleStart = () => {
-    // TODO: 선택 결과를 백엔드로 보내고 '03 작업 진행' 화면으로 이동
+    // TODO: 선택 결과를 백엔드로 보내기
+    const usedSteps = steps.filter((s) => choices[s.id] === AGENT_CHOICE.use);
+    navigate('/new/progress', { state: { plan: { ...plan, steps: usedSteps } } });
   };
 
   return (
