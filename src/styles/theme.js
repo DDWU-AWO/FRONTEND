@@ -12,6 +12,7 @@ const theme = {
     borderStrong: '#d5d9e4',
     background: '#f6f7fa',
     skeleton: '#dee2ea',
+    barBefore: '#c9cfe0',
     surface: '#ffffff',
     surfaceSelected: '#f4f6fb',
     surfaceMuted: '#eef0f4',

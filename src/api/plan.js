@@ -3,7 +3,7 @@
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const MEETING_PLAN = [
+export const MEETING_PLAN = [
   {
     id: 1,
     name: '회의 요약',
@@ -24,7 +24,7 @@ const MEETING_PLAN = [
   },
 ];
 
-const BLOG_PLAN = [
+export const BLOG_PLAN = [
   {
     id: 1,
     name: '자료 조사',
@@ -63,7 +63,7 @@ const BLOG_PLAN = [
   },
 ];
 
-const RESEARCH_PLAN = [
+export const RESEARCH_PLAN = [
   {
     id: 1,
     name: '자료 조사',

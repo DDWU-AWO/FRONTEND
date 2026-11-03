@@ -199,11 +199,19 @@ function ProgressPage() {
   // 개발용: 주소 뒤에 ?simulate=pause 를 붙이면 3단계(없으면 마지막 단계)에서 한 번 멈춥니다.
   const simulatePause = new URLSearchParams(search).get('simulate') === 'pause';
   const pauseIndex = Math.min(2, steps.length - 1);
+  // '내 작업'에서 이어서 하는 경우: 끝난 단계 수와 멈춤 여부
+  const resume = state?.resume ?? { doneCount: 0, paused: false };
 
   const [request, setRequest] = useState(plan?.request ?? '');
-  const [statuses, setStatuses] = useState(() => steps.map(() => STATUS.waiting));
-  const [results, setResults] = useState({});
-  const [current, setCurrent] = useState(0);
+  const [statuses, setStatuses] = useState(() =>
+    steps.map((_, i) => {
+      if (i < resume.doneCount) return STATUS.done;
+      if (i === resume.doneCount && resume.paused) return STATUS.paused;
+      return STATUS.waiting;
+    })
+  );
+  const [results, setResults] = useState(state?.results ?? {});
+  const [current, setCurrent] = useState(resume.doneCount);
   const [attempt, setAttempt] = useState(0);
   const [showFull, setShowFull] = useState(false);
 
@@ -213,6 +221,8 @@ function ProgressPage() {
   // 현재 단계를 실행하고, 끝나면 다음 단계로 넘어갑니다.
   useEffect(() => {
     if (current >= steps.length) return undefined;
+    // 멈춘 채로 다시 연 작업은 '이 단계부터 다시 하기'를 누를 때까지 기다립니다.
+    if (resume.paused && current === resume.doneCount && attempt === 0) return undefined;
     let ignore = false;
     const step = steps[current];
     const fail = simulatePause && current === pauseIndex && attempt === 0;
