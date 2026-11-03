@@ -1,0 +1,10 @@
+.app {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 4rem 1.5rem;
+}
+
+.app h1 {
+  font-size: 2.25rem;
+  margin-bottom: 0.75rem;
+}
