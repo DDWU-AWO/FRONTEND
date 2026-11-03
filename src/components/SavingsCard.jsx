@@ -83,6 +83,7 @@ function SavingsCard({
   layout = 'card',
   percent = 85,
   heading = '핵심만 전달해서 아꼈어요',
+  bannerTitle,
   unitLabel = '더 적은 분량',
   description,
   reportTo,
@@ -93,7 +94,7 @@ function SavingsCard({
     return (
       <BannerWrapper {...rest}>
         <BannerText>
-          <BannerTitle>이번 작업에서 아낀 분량 {percent}%</BannerTitle>
+          <BannerTitle>{bannerTitle ?? `이번 작업에서 아낀 분량 ${percent}%`}</BannerTitle>
           <Muted>
             {description ?? '다음 AI에게 꼭 필요한 내용만 전달해서 아꼈어요.'}
           </Muted>

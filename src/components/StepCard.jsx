@@ -125,6 +125,7 @@ function StepCard({
   status = 'waiting',
   layout = 'vertical',
   selected = false,
+  hideStatus = false,
   onClick,
   ...rest
 }) {
@@ -142,7 +143,7 @@ function StepCard({
     >
       <StatusArea $layout={layout}>
         <StepNumber $status={status}>{step}</StepNumber>
-        <StatusBadge status={status} />
+        {!hideStatus && <StatusBadge status={status} />}
       </StatusArea>
       <Info $layout={layout}>
         <Title>{title}</Title>

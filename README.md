@@ -29,6 +29,6 @@ src/
 ├─ hooks/        # 커스텀 훅
 ├─ pages/        # 화면 단위 컴포넌트
 ├─ utils/        # 공통 유틸 함수
-├─ App.js
-└─ index.js
+├─ App.jsx
+└─ index.jsx
 ```
