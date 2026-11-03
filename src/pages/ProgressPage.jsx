@@ -235,6 +235,17 @@ function ProgressPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [current, attempt]);
 
+  // 모든 단계가 끝나면 잠시 완료 상태를 보여준 뒤 결과 확인 화면으로 이동합니다.
+  const allDone = steps.length > 0 && statuses.every((s) => s === STATUS.done);
+  useEffect(() => {
+    if (!allDone) return undefined;
+    const timer = setTimeout(() => {
+      navigate('/new/result', { state: { plan, results } });
+    }, 1200);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allDone]);
+
   if (!plan) return <Navigate to="/" replace />;
 
   const total = steps.length;
