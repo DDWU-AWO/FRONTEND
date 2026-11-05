@@ -1,6 +1,13 @@
 import { useState } from 'react';
 import styled from 'styled-components';
-import { Button, SavingsCard, StatusBadge, StepCard, STEP_STATUS } from '../components';
+import {
+  Button,
+  SavingsCard,
+  SelectionBadge,
+  StatusBadge,
+  StepCard,
+  STEP_STATUS,
+} from '../components';
 
 // 재사용 컴포넌트 미리보기 (Figma 'AWO · 재사용 컴포넌트' 섹션과 대조용)
 const Page = styled.main`
@@ -38,6 +45,15 @@ function ComponentsPage() {
         <Row>
           {statuses.map((status) => (
             <StatusBadge key={status} status={status} />
+          ))}
+        </Row>
+      </Section>
+
+      <Section>
+        <h2>SelectionBadge</h2>
+        <Row>
+          {['use', 'skip', 'change'].map((choice) => (
+            <SelectionBadge key={choice} choice={choice} />
           ))}
         </Row>
       </Section>

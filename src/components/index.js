@@ -9,4 +9,6 @@ export { default as RequestForm } from './RequestForm';
 export { default as MarkdownView } from './MarkdownView';
 export { default as ReviewList } from './ReviewList';
 export { default as Tabs } from './Tabs';
-export { default as StatusPill } from './StatusPill';
+export { default as SelectionBadge } from './SelectionBadge';
+export { default as MyRequest } from './MyRequest';
+export { default as ConfirmDialog } from './ConfirmDialog';

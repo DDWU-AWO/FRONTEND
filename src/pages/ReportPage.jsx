@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { getMonthlyReport } from '../api/report';
+import { Button } from '../components';
+import { ReactComponent as ChartIcon } from '../assets/icon-chart.svg';
 import { formatChars, formatWon, savedPercent } from '../utils/format';
 
 const CHAR_AXIS_MAX = 400_000; // 단계별 분량 막대의 최대 눈금 (40만 자)
@@ -266,24 +269,114 @@ const Table = styled.table`
   }
 `;
 
+const Empty = styled.section`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  min-height: 500px;
+  padding: 40px 16px;
+  border-radius: ${({ theme }) => theme.radius.lg};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.surface};
+  text-align: center;
+`;
+
+const EmptyIcon = styled.span`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 20px;
+  background: ${({ theme }) => theme.colors.primarySoft};
+`;
+
+const EmptyText = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 600px;
+
+  h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.5;
+    color: ${({ theme }) => theme.colors.text};
+  }
+`;
+
 /**
- * Figma: 06 절약 리포트 / 월간 요약
+ * Figma: 06 절약 리포트 (06-1 월간 요약, 06-2 데이터 없음)
  * 통째로 넘겼을 때와 핵심만 넘겼을 때의 분량·비용을 비교해 보여줍니다.
+ * 개발용: 주소 뒤에 ?demo=empty 를 붙이면 기록이 없는 화면을 볼 수 있어요.
  */
 function ReportPage() {
+  const navigate = useNavigate();
+  const { search } = useLocation();
+  const isEmptyDemo = new URLSearchParams(search).get('demo') === 'empty';
   const [report, setReport] = useState(null);
 
   useEffect(() => {
     let ignore = false;
-    getMonthlyReport().then((data) => {
+    getMonthlyReport({ empty: isEmptyDemo }).then((data) => {
       if (!ignore) setReport(data);
     });
     return () => {
       ignore = true;
     };
-  }, []);
+  }, [isEmptyDemo]);
 
   if (!report) return null;
+
+  const isEmpty = report.totalTasks === 0;
+
+  const top = (
+    <Top>
+      <Heading>
+        <Title>이만큼 아꼈어요</Title>
+        <Text $size={16}>
+          {isEmpty
+            ? '작업을 끝낼 때마다 AI가 읽은 분량과 아낀 비용을 모아서 보여드려요.'
+            : '꼭 필요한 내용만 전달해서, AI가 읽는 분량과 비용을 줄였어요.'}
+        </Text>
+      </Heading>
+      <Period>
+        <Text $size={16} $weight={700} $color="text">
+          {report.month}
+        </Text>
+        <Text $size={13}>
+          {report.period}
+          {report.isSample && ' · 예시 데이터'}
+        </Text>
+      </Period>
+    </Top>
+  );
+
+  if (isEmpty) {
+    return (
+      <Wrapper>
+        {top}
+        <Heading $gap={12}>
+          <Empty>
+            <EmptyIcon>
+              <ChartIcon width={32} height={32} aria-hidden />
+            </EmptyIcon>
+            <EmptyText>
+              <h2>아직 아낀 기록이 없어요</h2>
+              <Text $size={16} $lineHeight={1.7}>
+                작업을 한 번 끝내면 AI가 읽은 분량과 아낀 비용을 여기서 보여드려요.
+              </Text>
+            </EmptyText>
+            <Button onClick={() => navigate('/')}>새 작업 시작하기</Button>
+          </Empty>
+          <Text $size={13}>비용은 AWO가 직접 계산한 값이라 실제 청구액과 조금 다를 수 있어요.</Text>
+        </Heading>
+      </Wrapper>
+    );
+  }
 
   const { chars, cost } = report;
   const savedChars = chars.before - chars.after;
@@ -291,21 +384,7 @@ function ReportPage() {
 
   return (
     <Wrapper>
-      <Top>
-        <Heading>
-          <Title>이만큼 아꼈어요</Title>
-          <Text $size={16}>꼭 필요한 내용만 전달해서, AI가 읽는 분량과 비용을 줄였어요.</Text>
-        </Heading>
-        <Period>
-          <Text $size={16} $weight={700} $color="text">
-            {report.month}
-          </Text>
-          <Text $size={13}>
-            {report.period}
-            {report.isSample && ' · 예시 데이터'}
-          </Text>
-        </Period>
-      </Top>
+      {top}
 
       <Hero aria-label="이번 달 절약 성과">
         <HeroNumbers>

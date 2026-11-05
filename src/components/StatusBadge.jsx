@@ -9,34 +9,40 @@ export const STEP_STATUS = {
   skipped: '건너뜀',
 };
 
-const statusColor = {
-  done: 'success',
-  running: 'primary',
-  waiting: 'textMuted',
-  paused: 'danger',
-  skipped: 'textMuted',
+// 상태별 (배경, 글자) 색상. 건너뜀은 배경 없이 테두리만 그립니다.
+const statusColors = {
+  done: ['successBg', 'success'],
+  running: ['primarySoft', 'primary'],
+  waiting: ['neutralBg', 'textMuted'],
+  paused: ['dangerTint', 'danger'],
+  skipped: [null, 'textMuted'],
 };
 
-const Label = styled.span`
+const Chip = styled.span`
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
+  padding: 3px 8px;
+  border-radius: 999px;
   font-size: 13px;
   font-weight: 500;
   line-height: 1.2;
   white-space: nowrap;
-  color: ${({ theme, $status }) => theme.colors[statusColor[$status]]};
+  background: ${({ theme, $status }) => theme.colors[statusColors[$status][0]] ?? 'transparent'};
+  color: ${({ theme, $status }) => theme.colors[statusColors[$status][1]]};
+  ${({ theme, $status }) =>
+    $status === 'skipped' && `padding: 2px 7px; border: 1px solid ${theme.colors.borderNeutral};`}
 `;
 
 /**
  * Figma: StatusBadge
  * status: done / running / waiting / paused / skipped
- * label: 기본 문구 대신 보여줄 문구 (예: '멈췄어요')
  */
-function StatusBadge({ status = 'done', label, ...rest }) {
+function StatusBadge({ status = 'done', ...rest }) {
   return (
-    <Label $status={status} {...rest}>
-      {label ?? STEP_STATUS[status]}
-    </Label>
+    <Chip $status={status} {...rest}>
+      {STEP_STATUS[status]}
+    </Chip>
   );
 }
 

@@ -57,8 +57,11 @@ const NOVEMBER_2026 = {
   ],
 };
 
-/** 월간 절약 리포트를 받아옵니다. */
-export async function getMonthlyReport() {
+/** 월간 절약 리포트를 받아옵니다. empty가 true면 기록이 없는 달을 돌려줍니다. (빈 화면 확인용) */
+export async function getMonthlyReport({ empty = false } = {}) {
   await delay(300);
+  if (empty) {
+    return { month: NOVEMBER_2026.month, period: NOVEMBER_2026.period, isSample: false, totalTasks: 0 };
+  }
   return NOVEMBER_2026;
 }

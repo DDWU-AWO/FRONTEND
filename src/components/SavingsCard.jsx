@@ -66,6 +66,7 @@ const BannerTitle = styled.p`
 
 const ReportLink = styled(Link)`
   flex-shrink: 0;
+  padding: 8px 0; /* 누르기 쉬운 높이 */
   font-family: ${({ theme }) => theme.fonts.link};
   font-size: 14px;
   font-weight: 600;

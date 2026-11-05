@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import styled, { css } from 'styled-components';
 import Button from './Button';
+import SelectionBadge from './SelectionBadge';
 import StepCard from './StepCard';
 import { previewAgentChange } from '../api/plan';
 
@@ -9,12 +10,6 @@ export const AGENT_CHOICE = {
   use: 'use',
   skip: 'skip',
   change: 'change',
-};
-
-const choiceLabel = {
-  use: '사용 선택',
-  skip: '빼기 선택',
-  change: '바꾸는 중',
 };
 
 const Card = styled.article`
@@ -70,15 +65,6 @@ const Description = styled.p`
   font-size: 15px;
   line-height: 1.6;
   color: ${({ theme, $muted }) => ($muted ? theme.colors.textMuted : theme.colors.textSecondary)};
-`;
-
-const ChoiceLabel = styled.span`
-  flex-shrink: 0;
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 1.2;
-  white-space: nowrap;
-  color: ${({ theme, $muted }) => ($muted ? theme.colors.textMuted : theme.colors.primary)};
 `;
 
 const Small = styled.p`
@@ -259,7 +245,7 @@ function AgentCard({ step, choice, onChoose, onConfirmChange, onCancelChange }) 
         <Body>
           <DescriptionRow>
             <Description $muted={isSkipped}>{step.description}</Description>
-            <ChoiceLabel $muted={isSkipped}>{choiceLabel[choice]}</ChoiceLabel>
+            <SelectionBadge choice={choice} />
           </DescriptionRow>
           <Small $lineHeight={1.5}>
             {isSkipped ? '이 단계는 건너뛰어요' : `분량 · ${step.volume}`}

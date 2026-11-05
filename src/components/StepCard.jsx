@@ -1,5 +1,6 @@
 import styled, { css } from 'styled-components';
 import StatusBadge from './StatusBadge';
+import { ReactComponent as CheckIcon } from '../assets/icon-check.svg';
 
 // 단계 번호 원형 배지 색상 (배경, 글자)
 const numberColors = {
@@ -46,20 +47,13 @@ const Card = styled.div`
       background: ${theme.colors.surfaceMuted};
     `}
 
+  /* 선택된 카드는 테두리가 2px라 안쪽 여백을 1px 줄여 높이를 맞춥니다. */
   ${({ $selected, theme }) =>
     $selected &&
     css`
+      padding: 17px;
       background: ${theme.colors.surfaceSelected};
       border: 2px solid ${theme.colors.primary};
-    `}
-
-  /* Figma 03-5: 멈춘 단계 강조 */
-  ${({ $status, $emphasized, theme }) =>
-    $status === 'paused' &&
-    $emphasized &&
-    css`
-      background: ${theme.colors.dangerSoft};
-      border: 2px solid ${theme.colors.danger};
     `}
 
   ${({ $clickable }) =>
@@ -98,15 +92,6 @@ const StepNumber = styled.span`
   font-weight: 500;
   background: ${({ theme, $status }) => theme.colors[numberColors[$status][0]]};
   color: ${({ theme, $status }) => theme.colors[numberColors[$status][1]]};
-
-  ${({ $status, $emphasized, theme }) =>
-    $status === 'paused' &&
-    $emphasized &&
-    css`
-      background: ${theme.colors.danger};
-      color: ${theme.colors.onPrimary};
-      font-weight: 700;
-    `}
 `;
 
 const Info = styled.div`
@@ -134,8 +119,7 @@ const Subtitle = styled.p`
 /**
  * Figma: StepCard
  * status 5종 × layout(horizontal 가로형 / vertical 세로형) × selected
- * 화면에서는 세로형(vertical)을 기본으로 사용합니다.
- * emphasized: 멈춘(paused) 단계를 03-5처럼 강하게 표시합니다.
+ * 화면에서는 세로형(vertical)을 기본으로 사용합니다. 완료된 단계는 번호 대신 ✓를 보여줍니다.
  */
 function StepCard({
   step,
@@ -144,13 +128,10 @@ function StepCard({
   status = 'waiting',
   layout = 'vertical',
   selected = false,
-  emphasized = false,
   hideStatus = false,
   onClick,
   ...rest
 }) {
-  const isEmphasizedPause = emphasized && status === 'paused';
-
   return (
     <Card
       as={onClick ? 'button' : 'div'}
@@ -160,17 +141,18 @@ function StepCard({
       $layout={layout}
       $status={status}
       $selected={selected}
-      $emphasized={emphasized}
       $clickable={Boolean(onClick)}
       {...rest}
     >
       <StatusArea $layout={layout}>
-        <StepNumber $status={status} $emphasized={emphasized}>
-          {step}
+        <StepNumber $status={status}>
+          {status === 'done' ? (
+            <CheckIcon width={16} height={16} role="img" aria-label={`${step}단계`} />
+          ) : (
+            step
+          )}
         </StepNumber>
-        {!hideStatus && (
-          <StatusBadge status={status} label={isEmphasizedPause ? '멈췄어요' : undefined} />
-        )}
+        {!hideStatus && <StatusBadge status={status} />}
       </StatusArea>
       <Info $layout={layout}>
         <Title>{title}</Title>

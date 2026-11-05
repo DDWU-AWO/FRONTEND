@@ -1,13 +1,39 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { runStep } from '../api/progress';
-import { Button, RequestForm, SavingsCard, StepCard } from '../components';
+import { Button, ConfirmDialog, MyRequest, SavingsCard, StepCard } from '../components';
 
 const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
   gap: 40px;
+`;
+
+const Heading = styled.section`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`;
+
+const Title = styled.h1`
+  margin: 0;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: ${({ theme }) => theme.colors.text};
+`;
+
+const Description = styled.p`
+  font-size: 16px;
+  line-height: 1.2;
+  color: ${({ theme }) => theme.colors.textMuted};
+`;
+
+const HeaderRight = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 16px;
 `;
 
 const Card = styled.section`
@@ -88,7 +114,7 @@ const NoticeTitle = styled.p`
   font-size: 17px;
   font-weight: 700;
   line-height: 1.2;
-  color: ${({ theme }) => theme.colors.danger};
+  color: ${({ theme }) => theme.colors.error};
 `;
 
 const Muted = styled.p`
@@ -154,7 +180,7 @@ const FullText = styled.p`
 
 const TextButton = styled.button`
   align-self: flex-start;
-  padding: 0;
+  padding: 6px 0; /* 누르기 쉬운 높이 */
   border: none;
   background: none;
   font-family: inherit;
@@ -202,7 +228,6 @@ function ProgressPage() {
   // '내 작업'에서 이어서 하는 경우: 끝난 단계 수와 멈춤 여부
   const resume = state?.resume ?? { doneCount: 0, paused: false };
 
-  const [request, setRequest] = useState(plan?.request ?? '');
   const [statuses, setStatuses] = useState(() =>
     steps.map((_, i) => {
       if (i < resume.doneCount) return STATUS.done;
@@ -214,6 +239,9 @@ function ProgressPage() {
   const [current, setCurrent] = useState(resume.doneCount);
   const [attempt, setAttempt] = useState(0);
   const [showFull, setShowFull] = useState(false);
+  const [confirmingStop, setConfirmingStop] = useState(false);
+  // 실행 번호: 작업을 멈추면 바뀌어서, 이미 보낸 요청의 결과를 무시합니다.
+  const runIdRef = useRef(0);
 
   const setStatus = (index, status) =>
     setStatuses((prev) => prev.map((s, i) => (i === index ? status : s)));
@@ -224,19 +252,21 @@ function ProgressPage() {
     // 멈춘 채로 다시 연 작업은 '이 단계부터 다시 하기'를 누를 때까지 기다립니다.
     if (resume.paused && current === resume.doneCount && attempt === 0) return undefined;
     let ignore = false;
+    runIdRef.current += 1;
+    const runId = runIdRef.current;
     const step = steps[current];
     const fail = simulatePause && current === pauseIndex && attempt === 0;
 
     setStatus(current, STATUS.running);
     runStep(step, { fail })
       .then((result) => {
-        if (ignore) return;
+        if (ignore || runId !== runIdRef.current) return;
         setResults((prev) => ({ ...prev, [step.id]: result }));
         setStatus(current, STATUS.done);
         setCurrent((i) => i + 1);
       })
       .catch(() => {
-        if (!ignore) setStatus(current, STATUS.paused);
+        if (!ignore && runId === runIdRef.current) setStatus(current, STATUS.paused);
       });
 
     return () => {
@@ -270,16 +300,39 @@ function ProgressPage() {
 
   const retryStep = () => setAttempt((n) => n + 1);
   const changeRequest = () => navigate('/', { state: { request: plan.request } });
-  const startNew = (text) => navigate('/', { state: { request: text, autoStart: true } });
+
+  // 작업 멈추기: 진행 중인 단계의 결과는 버리고 멈춤 상태로 바꿉니다.
+  const stopTask = () => {
+    runIdRef.current += 1;
+    setStatus(current, STATUS.paused);
+    setConfirmingStop(false);
+  };
+
+  const doneRange = doneCount === 1 ? '1' : `1~${doneCount}`;
 
   return (
     <Wrapper>
-      <RequestForm value={request} onChange={setRequest} onSubmit={startNew} showExamples />
+      <Heading>
+        <Title>{isPaused ? '작업이 잠시 멈췄어요' : '작업을 진행하고 있어요'}</Title>
+        <Description>
+          {isPaused
+            ? '멈춘 단계부터 다시 하거나, 요청을 바꿔서 다시 시작할 수 있어요.'
+            : '요청을 단계별로 나눠 담당 AI가 차례대로 처리하고 있어요.'}
+        </Description>
+        <MyRequest>{plan.request}</MyRequest>
+      </Heading>
 
       <Card aria-live="polite">
         <CardHeader>
           <CardTitle>진행 상황</CardTitle>
-          <ProgressText>{progressLabel(total, statuses, current)}</ProgressText>
+          <HeaderRight>
+            <ProgressText>{progressLabel(total, statuses, current)}</ProgressText>
+            {isRunning && (
+              <Button size="S" variant="secondary" onClick={() => setConfirmingStop(true)}>
+                작업 멈추기
+              </Button>
+            )}
+          </HeaderRight>
         </CardHeader>
         <Bar
           role="progressbar"
@@ -298,7 +351,6 @@ function ProgressPage() {
               description={step.agent}
               status={statuses[i]}
               selected={statuses[i] === STATUS.running}
-              emphasized
             />
           ))}
         </Steps>
@@ -307,8 +359,7 @@ function ProgressPage() {
             <NoticeText>
               <NoticeTitle>{steps[current].name} 단계가 멈췄어요</NoticeTitle>
               <Muted>
-                {doneCount > 0 &&
-                  `완료된 ${doneCount === 1 ? '1' : `1~${doneCount}`}단계 결과는 그대로 유지돼요. `}
+                {doneCount > 0 && `완료된 ${doneRange}단계 결과는 그대로 유지돼요. `}
                 이 단계부터 다시 하거나 요청을 바꿔서 다시 해 보세요.
               </Muted>
             </NoticeText>
@@ -354,6 +405,19 @@ function ProgressPage() {
           }
         />
       </Bottom>
+
+      {confirmingStop && isRunning && (
+        <ConfirmDialog
+          title="작업을 멈출까요?"
+          cancelLabel="계속 진행"
+          confirmLabel="멈추기"
+          onCancel={() => setConfirmingStop(false)}
+          onConfirm={stopTask}
+        >
+          지금 진행 중인 &apos;{steps[current].name}&apos; 단계는 처음부터 다시 해야 해요.
+          {doneCount > 0 && ` 완료된 ${doneRange}단계 결과는 그대로 남아요.`}
+        </ConfirmDialog>
+      )}
     </Wrapper>
   );
 }

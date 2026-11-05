@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { AgentCard, AGENT_CHOICE, Button } from '../components';
+import { AgentCard, AGENT_CHOICE, Button, MyRequest } from '../components';
 
 const Wrapper = styled.div`
   display: flex;
@@ -36,29 +36,6 @@ const Muted = styled.p`
   color: ${({ theme }) => theme.colors.textMuted};
 `;
 
-const MyRequest = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  padding: 18px 24px;
-  border-radius: ${({ theme }) => theme.radius.md};
-  background: ${({ theme }) => theme.colors.surfaceMuted};
-`;
-
-const MyRequestLabel = styled.span`
-  flex-shrink: 0;
-  font-size: 14px;
-  font-weight: 700;
-  line-height: 1.2;
-  color: ${({ theme }) => theme.colors.textMuted};
-`;
-
-const MyRequestText = styled.p`
-  flex: 1;
-  font-size: 16px;
-  line-height: 1.6;
-  color: ${({ theme }) => theme.colors.textSecondary};
-`;
 
 const AgentList = styled.section`
   display: flex;
@@ -142,12 +119,13 @@ function AgentConfirmPage() {
   const skipCount = values.filter((c) => c === AGENT_CHOICE.skip).length;
   const changeCount = values.filter((c) => c === AGENT_CHOICE.change).length;
   const doneCount = useCount + skipCount;
-  const canStart = changeCount === 0 && useCount > 0;
+  // 바꾸는 중인 단계는 확정 전 원래 내용으로 맡깁니다. (Figma 02-3: 작업 시작 활성화)
+  const canStart = useCount + changeCount > 0;
 
   let summaryText = '담당 AI를 모두 골랐어요. 이제 작업을 시작할 수 있어요.';
   if (changeCount > 0) {
     summaryText = `사용 ${useCount}개 · 빼기 ${skipCount}개 · 바꾸는 내용 ${changeCount}개를 확정해 주세요.`;
-  } else if (useCount === 0) {
+  } else if (useCount + changeCount === 0) {
     summaryText = '담당 AI를 하나 이상 사용해 주세요.';
   }
 
@@ -171,7 +149,7 @@ function AgentConfirmPage() {
 
   const handleStart = () => {
     // TODO: 선택 결과를 백엔드로 보내기
-    const usedSteps = steps.filter((s) => choices[s.id] === AGENT_CHOICE.use);
+    const usedSteps = steps.filter((s) => choices[s.id] !== AGENT_CHOICE.skip);
     navigate('/new/progress', { state: { plan: { ...plan, steps: usedSteps } } });
   };
 
@@ -185,10 +163,7 @@ function AgentConfirmPage() {
             바꿀 수 있어요.
           </Muted>
         </Heading>
-        <MyRequest>
-          <MyRequestLabel>내 요청</MyRequestLabel>
-          <MyRequestText>{plan.request}</MyRequestText>
-        </MyRequest>
+        <MyRequest>{plan.request}</MyRequest>
       </Intro>
 
       <AgentList>

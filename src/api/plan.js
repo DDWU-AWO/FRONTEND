@@ -118,9 +118,15 @@ function pickPlan(request) {
   return RESEARCH_PLAN;
 }
 
-/** 요청을 단계(담당 AI)로 나눈 계획표를 받아옵니다. */
+/**
+ * 요청을 단계(담당 AI)로 나눈 계획표를 받아옵니다.
+ * 요청이 10자보다 짧으면 단계를 나누지 못한 상황(Figma 01-2)을 흉내 냅니다.
+ */
 export async function createPlan(request) {
   await delay(1500);
+  if (request.trim().length < 10) {
+    throw new Error('요청을 단계로 나누지 못했어요.');
+  }
   const steps = pickPlan(request);
   return { request, steps, finalStepId: steps[steps.length - 1].id };
 }

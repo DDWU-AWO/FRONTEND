@@ -1,12 +1,14 @@
+import { forwardRef } from 'react';
 import styled, { css } from 'styled-components';
 
+// 모든 버튼이 1px 테두리를 가지고, 테두리를 포함해 M 47px · S 35px 높이가 되도록 맞춥니다.
 const sizeStyles = {
   M: css`
-    padding: 14px 20px;
+    padding: 13px 19px;
     font-size: 16px;
   `,
   S: css`
-    padding: 9px 14px;
+    padding: 8px 13px;
     font-size: 14px;
   `,
 };
@@ -15,7 +17,7 @@ const variantStyles = {
   primary: css`
     background: ${({ theme }) => theme.colors.primary};
     color: ${({ theme }) => theme.colors.onPrimary};
-    border: none;
+    border: 1px solid ${({ theme }) => theme.colors.primary};
   `,
   secondary: css`
     background: ${({ theme }) => theme.colors.surface};
@@ -52,12 +54,15 @@ const StyledButton = styled.button`
  * Figma: Button
  * variant: primary / secondary / danger, size: M / S, disabled: 낮은 불투명도
  */
-function Button({ variant = 'primary', size = 'M', type = 'button', children, ...rest }) {
+const Button = forwardRef(function Button(
+  { variant = 'primary', size = 'M', type = 'button', children, ...rest },
+  ref
+) {
   return (
-    <StyledButton type={type} $variant={variant} $size={size} {...rest}>
+    <StyledButton ref={ref} type={type} $variant={variant} $size={size} {...rest}>
       {children}
     </StyledButton>
   );
-}
+});
 
 export default Button;

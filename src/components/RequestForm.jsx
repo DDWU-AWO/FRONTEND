@@ -1,20 +1,6 @@
+import { forwardRef } from 'react';
 import styled, { css } from 'styled-components';
 import Button from './Button';
-
-const EXAMPLES = [
-  {
-    label: '회의록 요약하고 할 일 정리',
-    request: '회의록 요약하고 할 일 정리해 줘',
-  },
-  {
-    label: '경쟁 서비스 조사 보고서',
-    request: '경쟁 서비스 조사해서 보고서랑 발표 대본 만들어 줘',
-  },
-  {
-    label: '발표 대본 만들기',
-    request: '보고서 내용을 바탕으로 5분 발표 대본 만들어 줘',
-  },
-];
 
 const Section = styled.section`
   display: flex;
@@ -83,41 +69,14 @@ const TextArea = styled.textarea`
   }
 `;
 
-const Examples = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-`;
-
-const ExamplesLabel = styled.span`
-  font-size: 14px;
-  line-height: 1.2;
-  color: ${({ theme }) => theme.colors.textMuted};
-`;
-
-const Chip = styled.button`
-  padding: 8px 14px;
-  border-radius: 999px;
-  border: 1px solid ${({ theme }) => theme.colors.borderStrong};
-  background: ${({ theme }) => theme.colors.surface};
-  font-family: inherit;
-  font-size: 14px;
-  line-height: 1.2;
-  color: ${({ theme }) => theme.colors.textSecondary};
-  white-space: nowrap;
-  cursor: pointer;
-
-  &:hover {
-    border-color: ${({ theme }) => theme.colors.primary};
-  }
-`;
-
 /**
- * Figma: 요청 입력 영역 (01 요청 입력, 03 작업 진행 상단)
- * locked: 요청을 처리하는 동안 입력을 잠급니다.
+ * Figma: 01 요청 입력 영역
+ * locked: 요청을 처리하는 동안 입력을 잠그고 버튼 문구를 '준비 중…'으로 바꿉니다.
  */
-function RequestForm({ value, onChange, onSubmit, locked = false, showExamples = false }) {
+const RequestForm = forwardRef(function RequestForm(
+  { value, onChange, onSubmit, locked = false },
+  ref
+) {
   const canSubmit = value.trim().length > 0 && !locked;
 
   const handleSubmit = (e) => {
@@ -138,6 +97,7 @@ function RequestForm({ value, onChange, onSubmit, locked = false, showExamples =
       <Description>하고 싶은 일을 편하게 적으면, 여러 AI가 나눠서 차례대로 처리해요.</Description>
       <InputBox onSubmit={handleSubmit} $locked={locked}>
         <TextArea
+          ref={ref}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -147,21 +107,11 @@ function RequestForm({ value, onChange, onSubmit, locked = false, showExamples =
           disabled={locked}
         />
         <Button type="submit" disabled={!canSubmit}>
-          시작하기
+          {locked ? '준비 중…' : '시작하기'}
         </Button>
       </InputBox>
-      {showExamples && !locked && (
-        <Examples>
-          <ExamplesLabel>예시:</ExamplesLabel>
-          {EXAMPLES.map(({ label, request }) => (
-            <Chip key={label} type="button" onClick={() => onChange(request)}>
-              {label}
-            </Chip>
-          ))}
-        </Examples>
-      )}
     </Section>
   );
-}
+});
 
 export default RequestForm;

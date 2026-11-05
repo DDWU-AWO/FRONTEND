@@ -46,6 +46,55 @@ const Muted = styled.p`
   white-space: pre-wrap;
 `;
 
+const ErrorBanner = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 20px;
+  border-radius: ${({ theme }) => theme.radius.md};
+  background: ${({ theme }) => theme.colors.errorBg};
+`;
+
+const ErrorText = styled.div`
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+`;
+
+const ErrorTitle = styled.p`
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.6;
+  color: ${({ theme }) => theme.colors.error};
+`;
+
+const ErrorActions = styled.div`
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 10px;
+`;
+
+const CloseButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: ${({ theme }) => theme.radius.md};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.surface};
+  font-family: inherit;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+  color: ${({ theme }) => theme.colors.error};
+  cursor: pointer;
+`;
+
 const ButtonRow = styled.div`
   display: flex;
   align-items: center;
@@ -98,14 +147,22 @@ const SideStepCard = styled(StepCard)`
 `;
 
 const Viewing = styled.p`
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 0 4px;
   font-size: 13px;
-  line-height: 1.7;
+  line-height: 1.6;
   color: ${({ theme }) => theme.colors.textMuted};
 
+  /* 선택 표시 점 */
   &::before {
-    content: '•  ';
-    white-space: pre;
+    content: '';
+    flex-shrink: 0;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: ${({ theme }) => theme.colors.primary};
   }
 `;
 
@@ -279,7 +336,7 @@ function ReviewPreview({ result }) {
  * 최종 결과가 아닌 단계는 먼저 '중간 결과'(04-1)로 보여주고, 펼치면 전체 결과를 보여줍니다.
  */
 function ResultPage() {
-  const { state } = useLocation();
+  const { state, search } = useLocation();
   const plan = state?.plan;
   const results = state?.results ?? {};
   const steps = plan?.steps ?? [];
@@ -290,6 +347,8 @@ function ResultPage() {
   );
   const [expanded, setExpanded] = useState({});
   const [copied, setCopied] = useState(false);
+  const [downloadFailed, setDownloadFailed] = useState(false);
+  const simulateDownloadFail = new URLSearchParams(search).get('simulate') === 'download-fail';
 
   if (!plan || steps.length === 0) return <Navigate to="/" replace />;
 
@@ -309,13 +368,20 @@ function ResultPage() {
   };
 
   const handleDownload = () => {
-    const blob = new Blob([result.content], { type: 'text/markdown;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${step.name}.md`;
-    link.click();
-    URL.revokeObjectURL(url);
+    setDownloadFailed(false);
+    try {
+      // 개발용: 주소 뒤에 ?simulate=download-fail 을 붙이면 파일 받기 실패(Figma 04-5)를 볼 수 있어요.
+      if (simulateDownloadFail) throw new Error('파일을 만들지 못했어요.');
+      const blob = new Blob([result.content], { type: 'text/markdown;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${step.name}.md`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      setDownloadFailed(true);
+    }
   };
 
   let preview;
@@ -368,7 +434,7 @@ function ResultPage() {
     <Wrapper>
       <Top>
         <Heading>
-          <Title>다 됐어요</Title>
+          <Title>다 됐어요!</Title>
           <Muted $size={16}>
             {steps[0].name}부터 {steps[steps.length - 1].name}까지, 모든 단계를 마쳤어요.
           </Muted>
@@ -380,6 +446,27 @@ function ResultPage() {
           <Button onClick={handleDownload}>파일로 받기</Button>
         </ButtonRow>
       </Top>
+
+      {downloadFailed && (
+        <ErrorBanner role="alert">
+          <ErrorText>
+            <ErrorTitle>파일을 만들지 못했어요</ErrorTitle>
+            <Muted>결과는 그대로 남아 있어요. 다시 받거나 내용을 복사해서 쓸 수 있어요.</Muted>
+          </ErrorText>
+          <ErrorActions>
+            <Button size="S" variant="secondary" onClick={handleDownload}>
+              다시 받기
+            </Button>
+            <CloseButton
+              type="button"
+              aria-label="오류 안내 닫기"
+              onClick={() => setDownloadFailed(false)}
+            >
+              ×
+            </CloseButton>
+          </ErrorActions>
+        </ErrorBanner>
+      )}
 
       <Body>
         <Side>

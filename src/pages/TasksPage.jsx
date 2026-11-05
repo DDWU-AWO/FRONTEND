@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { getTaskDetail, getTasks, TASK_STATUS } from '../api/tasks';
-import { Button, StatusPill, Tabs } from '../components';
+import { Button, StatusBadge, Tabs } from '../components';
 import { ReactComponent as ClipboardIcon } from '../assets/icon-clipboard-list.svg';
 
 const FILTERS = [
@@ -86,6 +86,12 @@ const Request = styled.p`
   font-weight: 500;
   line-height: 1.6;
   color: ${({ theme }) => theme.colors.text};
+
+  /* 긴 요청은 두 줄까지 보여주고 말줄임 */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 `;
 
 const StepLabel = styled.p`
@@ -249,7 +255,7 @@ function TasksPage() {
               <Card key={task.id}>
                 <Row>
                   <Request>{task.request}</Request>
-                  <StatusPill status={task.status} />
+                  <StatusBadge status={task.status} />
                 </Row>
                 <Row $gap={20}>
                   <StepLabel>{stepLabel(task)}</StepLabel>
